@@ -6,18 +6,24 @@ import me.mykindos.betterpvp.clans.clans.Clan;
 import me.mykindos.betterpvp.clans.clans.ClanManager;
 import me.mykindos.betterpvp.core.framework.adapter.PluginAdapter;
 import me.mykindos.betterpvp.core.listener.BPvPListener;
+import me.mykindos.betterpvp.core.utilities.UtilBlock;
+import me.mykindos.betterpvp.core.utilities.UtilServer;
+import me.mykindos.betterpvp.core.utilities.UtilWorld;
 import me.mykindos.betterpvp.progression.Progression;
 import me.mykindos.betterpvp.progression.profession.skill.ProgressionSkill;
 import me.mykindos.betterpvp.progression.profession.skill.ProgressionSkillManager;
+import me.mykindos.betterpvp.progression.profession.skill.woodcutting.NoMoreLeaves;
 import me.mykindos.betterpvp.progression.profession.skill.woodcutting.TreeFellerSkill;
 import me.mykindos.betterpvp.progression.profession.woodcutting.WoodcuttingHandler;
 import me.mykindos.betterpvp.progression.profession.woodcutting.event.PlayerChopLogEvent;
 import me.mykindos.betterpvp.progression.profile.ProfessionProfileManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +38,7 @@ public class TreeFeller implements Listener {
     private final ProgressionSkillManager progressionSkillManager;
     private final WoodcuttingHandler woodcuttingHandler;
     private final TreeFellerSkill treeFellerSkill;
+    private final NoMoreLeaves noMoreLeaves;
 
     @Inject
     public TreeFeller(ClanManager clanManager) {
@@ -41,6 +48,7 @@ public class TreeFeller implements Listener {
         this.progressionSkillManager = progression.getInjector().getInstance(ProgressionSkillManager.class);
         this.woodcuttingHandler = progression.getInjector().getInstance(WoodcuttingHandler.class);
         this.treeFellerSkill = progression.getInjector().getInstance(TreeFellerSkill.class);
+        this.noMoreLeaves = progression.getInjector().getInstance(NoMoreLeaves.class);
 
     }
 
@@ -72,28 +80,49 @@ public class TreeFeller implements Listener {
             }
 
             event.setCancelled(true);
-            fellTree(playerClan, event.getChoppedLogBlock(), event, true);
+            fellTree(playerClan, event.getChoppedLogBlock(), event, true,
+                    noMoreLeaves.doesPlayerHaveSkill(player));
+
             treeFellerSkill.whenPlayerUsesSkill(player, skillLevel);
         });
     }
 
-    public void fellTree(Clan playerClan, Block block, PlayerChopLogEvent event, boolean initialBlock) {
+    /**
+     * Removes the logs of the tree
+     * <br>
+     * Removes the leaves of the tree if the player has <b>No More Leaves</b>
+     *
+     * @param playerClan the Clan of the player who activated Tree Feller
+     * @param block the current log or leaf block
+     * @param event the PlayerChopLogEvent instance
+     * @param initialBlock the initial log block that was chopped
+     * @param doesPlayerHaveNoMoreLeaves if the player has the No More Leaves perk
+     */
+    public void fellTree(Clan playerClan, Block block, PlayerChopLogEvent event, boolean initialBlock,
+                         boolean doesPlayerHaveNoMoreLeaves) {
         if (!initialBlock && woodcuttingHandler.didPlayerPlaceBlock(block)) return;
 
+        if (UtilBlock.isLeaves(block.getType())) {
+            if (doesPlayerHaveNoMoreLeaves) {
+                block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(Material.DIAMOND));
+            }
+        } else {
+            event.setAmountChopped(event.getAmountChopped() + 1);
+        }
+
         block.breakNaturally();
-        event.setAmountChopped(event.getAmountChopped() + 1);
 
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
                 Block targetBlock = block.getRelative(x, 1, z);
 
-                if(targetBlock.getType().name().contains("_LOG")) {
+                if (UtilBlock.isLog(targetBlock.getType()) || UtilBlock.isLeaves(targetBlock.getType())) {
                     Optional<Clan> targetBlockLocationClanOptional = clanManager.getClanByLocation(targetBlock.getLocation());
                     if (targetBlockLocationClanOptional.isPresent()) {
                         if (!targetBlockLocationClanOptional.get().equals(playerClan)) continue;
                     }
 
-                    fellTree(playerClan, targetBlock, event, false);
+                    fellTree(playerClan, targetBlock, event, false, doesPlayerHaveNoMoreLeaves);
                 }
             }
         }
