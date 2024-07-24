@@ -1,7 +1,7 @@
 package me.mykindos.betterpvp.progression.profession.fishing.event;
 
 import lombok.Getter;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingLoot;
 import org.bukkit.entity.Player;
 
 @Getter

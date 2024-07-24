@@ -1,11 +1,11 @@
 package me.mykindos.betterpvp.progression.profession.fishing.fish;
 
 import com.google.common.base.Preconditions;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingConfigLoader;
+import me.mykindos.betterpvp.progression.profession.loot.ProfessionConfigLoader;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
-public class FishTypeLoader implements FishingConfigLoader<FishType> {
+public class FishTypeLoader implements ProfessionConfigLoader<FishType> {
 
     @Override
     public String getTypeKey() {

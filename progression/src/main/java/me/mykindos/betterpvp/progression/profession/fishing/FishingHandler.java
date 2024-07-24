@@ -17,12 +17,12 @@ import me.mykindos.betterpvp.progression.profession.fishing.fish.SimpleFishType;
 import me.mykindos.betterpvp.progression.profession.fishing.leaderboards.BiggestFishLeaderboard;
 import me.mykindos.betterpvp.progression.profession.fishing.leaderboards.FishingCountLeaderboard;
 import me.mykindos.betterpvp.progression.profession.fishing.leaderboards.FishingWeightLeaderboard;
-import me.mykindos.betterpvp.progression.profession.fishing.loot.SwimmerLoader;
-import me.mykindos.betterpvp.progression.profession.fishing.loot.SwimmerType;
-import me.mykindos.betterpvp.progression.profession.fishing.loot.TreasureLoader;
-import me.mykindos.betterpvp.progression.profession.fishing.loot.TreasureType;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingConfigLoader;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.SwimmerLoader;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.SwimmerType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingTreasureLoader;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingTreasureType;
+import me.mykindos.betterpvp.progression.profession.loot.ProfessionConfigLoader;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 import me.mykindos.betterpvp.progression.profession.fishing.model.FishingRodType;
 import me.mykindos.betterpvp.progression.profession.fishing.repository.FishingRepository;
 import me.mykindos.betterpvp.progression.profile.ProfessionData;
@@ -54,10 +54,10 @@ public class FishingHandler extends ProfessionHandler {
     @Getter
     private final Set<FishingRodType> rodTypes = new HashSet<>();
 
-    private final FishingConfigLoader<?>[] lootLoaders = new FishingConfigLoader<?>[]{
+    private final ProfessionConfigLoader<?>[] lootLoaders = new ProfessionConfigLoader<?>[]{
             new SwimmerLoader(),
             new FishTypeLoader(),
-            new TreasureLoader()
+            new FishingTreasureLoader()
     };
 
 
@@ -135,7 +135,7 @@ public class FishingHandler extends ProfessionHandler {
         classes.removeIf(clazz -> clazz.isAnnotationPresent(Deprecated.class));
         classes.removeIf(clazz -> clazz == SimpleFishType.class); // Skip config fish type
         classes.removeIf(clazz -> clazz == SwimmerType.class); // Skip config fish type
-        classes.removeIf(clazz -> clazz == TreasureType.class); // Skip config fish type
+        classes.removeIf(clazz -> clazz == FishingTreasureType.class); // Skip config fish type
         for (var clazz : classes) {
             FishingLootType type = progression.getInjector().getInstance(clazz);
             progression.getInjector().injectMembers(type);
@@ -155,7 +155,7 @@ public class FishingHandler extends ProfessionHandler {
             final String type = Objects.requireNonNull(section).getString("type");
 
             boolean found = false;
-            for (FishingConfigLoader<?> loader : lootLoaders) {
+            for (ProfessionConfigLoader<?> loader : lootLoaders) {
                 if (loader.getTypeKey().equalsIgnoreCase(type)) {
                     final FishingLootType loaded = (FishingLootType) loader.read(section);
                     loaded.loadConfig(config);
@@ -165,10 +165,10 @@ public class FishingHandler extends ProfessionHandler {
             }
 
             if (!found) {
-                throw new IllegalArgumentException("Unknown loot type: " + type);
+                throw new IllegalArgumentException("Unknown fishing loot type: " + type);
             }
         }
-        log.info("Loaded " + lootTypes.size() + " loot types").submit();
+        log.info("Loaded " + lootTypes.size() + " loot types for fishing").submit();
     }
 
     @Override

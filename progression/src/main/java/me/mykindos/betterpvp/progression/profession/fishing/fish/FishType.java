@@ -1,6 +1,6 @@
 package me.mykindos.betterpvp.progression.profession.fishing.fish;
 
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 
 /**
  * Represents a type of fish that can be caught

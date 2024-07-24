@@ -1,6 +1,7 @@
-package me.mykindos.betterpvp.progression.profession.fishing.model;
+package me.mykindos.betterpvp.progression.profession.loot.fishing;
 
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerCaughtFishEvent;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 
 public interface FishingLoot {
 

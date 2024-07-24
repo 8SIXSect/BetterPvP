@@ -11,9 +11,9 @@ import me.mykindos.betterpvp.core.components.champions.weapons.IWeapon;
 import me.mykindos.betterpvp.core.listener.BPvPListener;
 import me.mykindos.betterpvp.core.utilities.UtilMessage;
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerCaughtFishEvent;
-import me.mykindos.betterpvp.progression.profession.fishing.loot.TreasureType;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingTreasureType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingLoot;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
@@ -38,18 +38,18 @@ public class ClansFishingListener implements Listener {
 
     @EventHandler
     public void onCaughtFish(PlayerCaughtFishEvent event) {
-        if (!(event.getLoot().getType() instanceof TreasureType treasureType)) return;
+        if (!(event.getLoot().getType() instanceof FishingTreasureType fishingTreasureType)) return;
 
         Optional<Clan> clanOptional = clanManager.getClanByLocation(event.getHook().getLocation());
         if (clanOptional.isEmpty() || !clanOptional.get().getName().equalsIgnoreCase("Fields")) {
-            ItemStack itemStack = new ItemStack(treasureType.getMaterial());
-            itemStack.editMeta(meta -> meta.setCustomModelData(treasureType.getCustomModelData()));
+            ItemStack itemStack = new ItemStack(fishingTreasureType.getMaterial());
+            itemStack.editMeta(meta -> meta.setCustomModelData(fishingTreasureType.getCustomModelData()));
 
             Optional<IWeapon> weaponOptional = weaponManager.getWeaponByItemStack(itemStack);
             if (weaponOptional.isPresent()) {
                 IWeapon weapon = weaponOptional.get();
                 if (weapon instanceof LegendaryWeapon) {
-                    TreasureType newLoot = new TreasureType("legendary_stick");
+                    FishingTreasureType newLoot = new FishingTreasureType("legendary_stick");
                     newLoot.setMaterial(Material.STICK);
                     newLoot.setMinAmount(1);
                     newLoot.setMaxAmount(1);

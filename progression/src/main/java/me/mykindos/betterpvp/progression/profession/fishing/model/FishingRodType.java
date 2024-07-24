@@ -4,6 +4,7 @@ import me.mykindos.betterpvp.core.framework.CoreNamespaceKeys;
 import me.mykindos.betterpvp.core.utilities.UtilMessage;
 import me.mykindos.betterpvp.core.utilities.model.ConfigAccessor;
 import me.mykindos.betterpvp.progression.profession.fishing.fish.FishType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingLoot;
 import me.mykindos.betterpvp.progression.utility.ProgressionNamespacedKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

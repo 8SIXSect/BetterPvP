@@ -22,8 +22,8 @@ import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerStopFish
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerThrowBaitEvent;
 import me.mykindos.betterpvp.progression.profession.fishing.fish.Fish;
 import me.mykindos.betterpvp.progression.profession.fishing.model.Bait;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingLoot;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;

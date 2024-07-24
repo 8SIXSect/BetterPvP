@@ -8,7 +8,7 @@ import me.mykindos.betterpvp.core.utilities.UtilFormat;
 import me.mykindos.betterpvp.core.utilities.UtilMath;
 import me.mykindos.betterpvp.progression.Progression;
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerCaughtFishEvent;
-import me.mykindos.betterpvp.progression.profession.fishing.loot.TreasureType;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingTreasureType;
 import me.mykindos.betterpvp.progression.profile.ProfessionProfileManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -50,7 +50,7 @@ public class FeelingLucky extends FishingProgressionSkill implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onCatchFish(PlayerCaughtFishEvent event) {
-        if (!(event.getLoot().getType() instanceof TreasureType treasure)) return;
+        if (!(event.getLoot().getType() instanceof FishingTreasureType treasure)) return;
         Player player = event.getPlayer();
         professionProfileManager.getObject(player.getUniqueId().toString()).ifPresent(profile -> {
             var profession = profile.getProfessionDataMap().get("Fishing");

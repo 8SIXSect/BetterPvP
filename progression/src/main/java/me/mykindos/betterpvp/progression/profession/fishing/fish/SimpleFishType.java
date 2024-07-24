@@ -2,7 +2,7 @@ package me.mykindos.betterpvp.progression.profession.fishing.fish;
 
 import lombok.Data;
 import me.mykindos.betterpvp.core.config.ExtendedYamlConfiguration;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingLoot;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,9 +37,7 @@ public class SimpleFishType implements FishType {
 
     @Override
     public FishingLoot generateLoot() {
-        final int weight = RANDOM.ints(minWeight, maxWeight + 1)
-                .findFirst()
-                .orElse(minWeight);
+        final int weight = randomIntWithinRange(RANDOM, minWeight, maxWeight);
         UUID uuid = UUID.randomUUID();
         return new Fish(uuid, this, weight);
     }

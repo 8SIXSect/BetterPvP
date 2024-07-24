@@ -7,7 +7,7 @@ import me.mykindos.betterpvp.core.utilities.UtilMessage;
 import me.mykindos.betterpvp.core.utilities.UtilServer;
 import me.mykindos.betterpvp.progression.Progression;
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerCaughtFishEvent;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
+import me.mykindos.betterpvp.progression.profession.loot.fishing.FishingLoot;
 import me.mykindos.betterpvp.progression.utility.ProgressionNamespacedKeys;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;

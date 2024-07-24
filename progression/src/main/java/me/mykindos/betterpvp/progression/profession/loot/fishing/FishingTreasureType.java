@@ -1,4 +1,4 @@
-package me.mykindos.betterpvp.progression.profession.fishing.loot;
+package me.mykindos.betterpvp.progression.profession.loot.fishing;
 
 import lombok.AccessLevel;
 import lombok.CustomLog;
@@ -8,8 +8,7 @@ import me.mykindos.betterpvp.core.config.ExtendedYamlConfiguration;
 import me.mykindos.betterpvp.core.framework.events.items.SpecialItemDropEvent;
 import me.mykindos.betterpvp.core.utilities.UtilServer;
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerCaughtFishEvent;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
@@ -21,7 +20,7 @@ import java.util.Random;
 
 @Data
 @CustomLog
-public class TreasureType implements FishingLootType {
+public class FishingTreasureType implements FishingLootType {
 
     private static final Random RANDOM = new Random();
 
@@ -44,14 +43,12 @@ public class TreasureType implements FishingLootType {
         return new FishingLoot() {
             @Override
             public @NotNull FishingLootType getType() {
-                return TreasureType.this;
+                return FishingTreasureType.this;
             }
 
             @Override
             public void processCatch(PlayerCaughtFishEvent event) {
-                final int count = RANDOM.ints(minAmount, maxAmount + 1)
-                        .findFirst()
-                        .orElse(minAmount);
+                final int count = randomIntWithinRange(RANDOM, minAmount, maxAmount);
                 final ItemStack itemStack = new ItemStack(material, count);
                 itemStack.editMeta(meta -> meta.setCustomModelData(customModelData));
 
@@ -73,14 +70,6 @@ public class TreasureType implements FishingLootType {
         this.maxAmount = config.getOrSaveInt("fishing.loot." + key + ".maxAmount", 1);
         this.customModelData = config.getObject("fishing.loot." + key + ".customModelData", Integer.class, null);
 
-        final String materialKey = config.getOrSaveString("fishing.loot." + key + ".material", "STONE");
-        if (materialKey == null) {
-            throw new IllegalArgumentException("Material key cannot be null!");
-        }
-        try {
-            this.material = Material.valueOf(materialKey.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid material key: " + materialKey, e);
-        }
+        this.material = getMaterialFromConfig(config, key, "fishing");
     }
 }

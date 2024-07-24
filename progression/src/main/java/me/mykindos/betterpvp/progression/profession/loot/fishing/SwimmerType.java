@@ -1,12 +1,11 @@
-package me.mykindos.betterpvp.progression.profession.fishing.loot;
+package me.mykindos.betterpvp.progression.profession.loot.fishing;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import me.mykindos.betterpvp.core.config.ExtendedYamlConfiguration;
 import me.mykindos.betterpvp.progression.profession.fishing.event.PlayerCaughtFishEvent;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLoot;
-import me.mykindos.betterpvp.progression.profession.fishing.model.FishingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.type.FishingLootType;
 import me.mykindos.betterpvp.progression.utility.ProgressionNamespacedKeys;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;

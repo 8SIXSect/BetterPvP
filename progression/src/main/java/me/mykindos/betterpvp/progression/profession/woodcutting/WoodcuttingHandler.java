@@ -4,11 +4,16 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.CustomLog;
 import lombok.Getter;
+import me.mykindos.betterpvp.core.config.ExtendedYamlConfiguration;
 import me.mykindos.betterpvp.core.framework.CoreNamespaceKeys;
 import me.mykindos.betterpvp.core.stats.repository.LeaderboardManager;
 import me.mykindos.betterpvp.core.utilities.UtilBlock;
+import me.mykindos.betterpvp.core.utilities.model.WeighedList;
 import me.mykindos.betterpvp.progression.Progression;
 import me.mykindos.betterpvp.progression.profession.ProfessionHandler;
+import me.mykindos.betterpvp.progression.profession.loot.ProfessionConfigLoader;
+import me.mykindos.betterpvp.progression.profession.loot.type.WoodcuttingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.woodcutting.WoodcuttingTreasureLoader;
 import me.mykindos.betterpvp.progression.profession.woodcutting.leaderboards.TotalLogsChoppedLeaderboard;
 import me.mykindos.betterpvp.progression.profession.woodcutting.repository.WoodcuttingRepository;
 import me.mykindos.betterpvp.progression.profile.ProfessionData;
@@ -18,9 +23,13 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.reflections.Reflections;
 
+import java.lang.reflect.Modifier;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
 
 
@@ -35,6 +44,11 @@ public class WoodcuttingHandler extends ProfessionHandler {
     private final WoodcuttingRepository woodcuttingRepository;
     private Map<Material, Long> experiencePerWood = new EnumMap<>(Material.class);
     private final LeaderboardManager leaderboardManager;
+
+    private final WeighedList<WoodcuttingLootType> lootTypes = new WeighedList<>();
+    private final ProfessionConfigLoader<?>[] lootLoaders = new ProfessionConfigLoader<?>[]{
+            new WoodcuttingTreasureLoader(),
+    };
 
     @Inject
     public WoodcuttingHandler(Progression progression, ProfessionProfileManager professionProfileManager, WoodcuttingRepository woodcuttingRepository, LeaderboardManager leaderboardManager) {
@@ -114,6 +128,47 @@ public class WoodcuttingHandler extends ProfessionHandler {
         return "Woodcutting";
     }
 
+
+    private void loadLootTypes(Reflections reflections, ExtendedYamlConfiguration config) {
+        Set<Class<? extends WoodcuttingLootType>> classes = reflections.getSubTypesOf(WoodcuttingLootType.class);
+        classes.removeIf(clazz -> clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers()) || clazz.isEnum());
+        classes.removeIf(clazz -> clazz.isAnnotationPresent(Deprecated.class));
+
+        for (var clazz : classes) {
+            WoodcuttingLootType type = progression.getInjector().getInstance(clazz);
+            progression.getInjector().injectMembers(type);
+
+            type.loadConfig(config);
+            lootTypes.add(type.getFrequency(), 1, type);
+        }
+
+
+        ConfigurationSection woodcuttingLootSection = config.getConfigurationSection("woodcutting.loot");
+        if (woodcuttingLootSection == null) {
+            woodcuttingLootSection = config.createSection("woodcutting.loot");
+        }
+
+        for (String key : woodcuttingLootSection.getKeys(false)) {
+            final ConfigurationSection section = woodcuttingLootSection.getConfigurationSection(key);
+            final String type = Objects.requireNonNull(section).getString("type");
+
+            boolean found = false;
+            for (ProfessionConfigLoader<?> loader : lootLoaders) {
+                if (loader.getTypeKey().equalsIgnoreCase(type)) {
+                    final WoodcuttingLootType loaded = (WoodcuttingLootType) loader.read(section);
+                    loaded.loadConfig(config);
+                    lootTypes.add(loaded.getFrequency(), 1, loaded);
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                throw new IllegalArgumentException("Unknown woodcutting loot type: " + type);
+            }
+        }
+        log.info("Loaded " + lootTypes.size() + " loot types for woodcutting").submit();
+    }
+
     public void loadConfig() {
         super.loadConfig();
 
@@ -134,6 +189,12 @@ public class WoodcuttingHandler extends ProfessionHandler {
             long experienceGiven = config.getLong("woodcutting.experiencePerWood." + key);
             experiencePerWood.put(woodLogMaterial, experienceGiven);
         }
+
         log.info("Loaded " + experiencePerWood.size() + " woodcutting blocks").submit();
+
+
+        lootTypes.clear();
+        Reflections classScan = new Reflections(this.getClass().getPackageName());
+        loadLootTypes(classScan, progression.getConfig());
     }
 }
