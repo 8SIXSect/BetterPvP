@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.Getter;
 import me.mykindos.betterpvp.core.utilities.UtilMessage;
 import me.mykindos.betterpvp.progression.Progression;
 import me.mykindos.betterpvp.progression.profession.loot.type.WoodcuttingLootType;
@@ -16,7 +17,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This skill is causes leaves to be removed when the player uses <b>Tree Feller</b>.
@@ -27,6 +30,14 @@ import java.util.Optional;
 public class NoMoreLeaves extends WoodcuttingProgressionSkill {
     private final ProfessionProfileManager professionProfileManager;
     private final WoodcuttingHandler woodcuttingHandler;
+
+    @Getter
+    private int baseMaxLeavesCount;
+
+    /**
+     * Global Map to prevent the player from chopping off too many leaves from a felled tree
+     */
+    public final HashMap<UUID, Integer> felledTreeLeavesMap = new HashMap<>();
 
     public final LoadingCache<Player, WoodcuttingLoot> woodcuttingLootCache = Caffeine.newBuilder()
             .weakKeys()
@@ -94,5 +105,11 @@ public class NoMoreLeaves extends WoodcuttingProgressionSkill {
         }
 
         return type.generateLoot();
+    }
+
+    @Override
+    public void loadConfig() {
+        super.loadConfig();
+        baseMaxLeavesCount = getConfig("baseMaxLeavesCount", 20, Integer.class);
     }
 }

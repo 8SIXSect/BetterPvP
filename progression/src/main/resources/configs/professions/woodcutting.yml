@@ -19,3 +19,4 @@ skills:
   no_more_leaves:
     enabled: true
     maxlevel: 86
+    baseMaxLeavesCount: 20

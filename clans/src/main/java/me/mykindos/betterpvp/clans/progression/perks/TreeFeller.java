@@ -1,5 +1,6 @@
 package me.mykindos.betterpvp.clans.progression.perks;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import me.mykindos.betterpvp.clans.clans.Clan;
@@ -7,8 +8,6 @@ import me.mykindos.betterpvp.clans.clans.ClanManager;
 import me.mykindos.betterpvp.core.framework.adapter.PluginAdapter;
 import me.mykindos.betterpvp.core.listener.BPvPListener;
 import me.mykindos.betterpvp.core.utilities.UtilBlock;
-import me.mykindos.betterpvp.core.utilities.UtilServer;
-import me.mykindos.betterpvp.core.utilities.UtilWorld;
 import me.mykindos.betterpvp.progression.Progression;
 import me.mykindos.betterpvp.progression.profession.loot.woodcutting.WoodcuttingLoot;
 import me.mykindos.betterpvp.progression.profession.skill.ProgressionSkill;
@@ -19,15 +18,19 @@ import me.mykindos.betterpvp.progression.profession.woodcutting.WoodcuttingHandl
 import me.mykindos.betterpvp.progression.profession.woodcutting.event.PlayerChopLogEvent;
 import me.mykindos.betterpvp.progression.profile.ProfessionProfileManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 @Singleton
 @BPvPListener
@@ -81,7 +84,22 @@ public class TreeFeller implements Listener {
             }
 
             event.setCancelled(true);
-            fellTree(player, playerClan, event.getChoppedLogBlock(), event, true);
+
+            UUID felledTreeUUID = UUID.randomUUID();
+            noMoreLeaves.felledTreeLeavesMap.put(felledTreeUUID, 0);
+            ImmutableSet<Location> initialLocations = ImmutableSet.of();
+
+            ImmutableSet<Location> felledLeavesLocations = fellTree(player, playerClan, event.getChoppedLogBlock(), felledTreeUUID, event, true, initialLocations);
+
+            noMoreLeaves.felledTreeLeavesMap.remove(felledTreeUUID);
+
+            List<Location> felledLeavesLocationsAsList =  felledLeavesLocations.asList();
+            Random random = new Random();
+            int randomIndex = random.nextInt(felledLeavesLocationsAsList.size());
+            Location randomLocation = felledLeavesLocationsAsList.get(randomIndex);
+
+            final WoodcuttingLoot woodcuttingLoot = noMoreLeaves.woodcuttingLootCache.get(player);
+            woodcuttingLoot.processRemovedLeaf(player, randomLocation);
 
             treeFellerSkill.whenPlayerUsesSkill(player, skillLevel);
         });
@@ -97,19 +115,41 @@ public class TreeFeller implements Listener {
      * @param block the current log or leaf block
      * @param event the PlayerChopLogEvent instance
      * @param initialBlock the initial log block that was chopped
+     * @param leafLocations immutable set of all leaf locations for the felled tree
+     * @return the set of all leaf locations for the felled tree
      */
-    public void fellTree(Player player, Clan playerClan, Block block, PlayerChopLogEvent event, boolean initialBlock) {
-        if (!initialBlock && woodcuttingHandler.didPlayerPlaceBlock(block)) return;
+    public ImmutableSet<Location> fellTree(Player player, Clan playerClan, Block block,
+                                           UUID felledTreeUUID, PlayerChopLogEvent event,
+                                           boolean initialBlock, ImmutableSet<Location> leafLocations) {
+
+        if (!initialBlock && woodcuttingHandler.didPlayerPlaceBlock(block)) return leafLocations;
+
+        // I don't like to reassign arguments so that's why this variable declaration is here
+        ImmutableSet<Location> leafLocationsWithAddedLocation = leafLocations;
 
         if (UtilBlock.isLeaves(block.getType())) {
             if (noMoreLeaves.doesPlayerHaveSkill(player)) {
-                final WoodcuttingLoot woodcuttingLoot = noMoreLeaves.woodcuttingLootCache.get(player);
-                woodcuttingLoot.processRemovedLeaf(player, block.getLocation());
+                // If the player has No More Leaves, then this is where the extra logic for that happens
+
+                // instead of getting base max leaves count, figure out how you want to calculate removing extra
+                // leaves and how you want to increase percentages of getting something
+                int leavesCount = noMoreLeaves.felledTreeLeavesMap.get(felledTreeUUID);
+                if (leavesCount > noMoreLeaves.getBaseMaxLeavesCount()) return leafLocations;
+
+                leafLocationsWithAddedLocation = new ImmutableSet.Builder<Location>()
+                        .addAll(leafLocations)
+                        .add(block.getLocation())
+                        .build();
+
+                noMoreLeaves.felledTreeLeavesMap.put(felledTreeUUID, leavesCount + 1);
             }
         } else {
             event.setAmountChopped(event.getAmountChopped() + 1);
         }
 
+        final Set<Location> leafLocationsAsMutableSet = new HashSet<>(leafLocationsWithAddedLocation);
+
+        // Utilized to remove both leaves and logs
         block.breakNaturally();
 
         for (int x = -1; x <= 1; x++) {
@@ -122,9 +162,12 @@ public class TreeFeller implements Listener {
                         if (!targetBlockLocationClanOptional.get().equals(playerClan)) continue;
                     }
 
-                    fellTree(player, playerClan, targetBlock, event, false);
+                    ImmutableSet<Location> felledLocations = fellTree(player, playerClan, targetBlock, felledTreeUUID, event, false, leafLocationsWithAddedLocation);
+                    leafLocationsAsMutableSet.addAll(felledLocations);
                 }
             }
         }
+
+        return ImmutableSet.copyOf(leafLocationsAsMutableSet);
     }
 }
