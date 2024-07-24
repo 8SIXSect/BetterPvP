@@ -1,13 +1,19 @@
 package me.mykindos.betterpvp.progression.profession.skill.woodcutting;
 
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import me.mykindos.betterpvp.core.utilities.UtilMessage;
 import me.mykindos.betterpvp.progression.Progression;
+import me.mykindos.betterpvp.progression.profession.loot.type.WoodcuttingLootType;
+import me.mykindos.betterpvp.progression.profession.loot.woodcutting.WoodcuttingLoot;
+import me.mykindos.betterpvp.progression.profession.woodcutting.WoodcuttingHandler;
 import me.mykindos.betterpvp.progression.profile.ProfessionProfile;
 import me.mykindos.betterpvp.progression.profile.ProfessionProfileManager;
+import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -20,11 +26,17 @@ import java.util.Optional;
 @Singleton
 public class NoMoreLeaves extends WoodcuttingProgressionSkill {
     private final ProfessionProfileManager professionProfileManager;
+    private final WoodcuttingHandler woodcuttingHandler;
+
+    public final LoadingCache<Player, WoodcuttingLoot> woodcuttingLootCache = Caffeine.newBuilder()
+            .weakKeys()
+            .build(key -> getRandomLoot());
 
     @Inject
-    public NoMoreLeaves(Progression progression, ProfessionProfileManager professionProfileManager) {
+    public NoMoreLeaves(Progression progression, ProfessionProfileManager professionProfileManager, WoodcuttingHandler woodcuttingHandler) {
         super(progression);
         this.professionProfileManager = professionProfileManager;
+        this.woodcuttingHandler = woodcuttingHandler;
     }
 
     @Override
@@ -58,5 +70,29 @@ public class NoMoreLeaves extends WoodcuttingProgressionSkill {
         }
 
         return false;
+    }
+
+    /**
+     * Gets a random loot type from WoodcuttingHandler
+     * If the type is null, an empty loot type is returned
+     * @return Gets a random loot type from WoodcuttingHandler
+     */
+    public WoodcuttingLoot getRandomLoot() {
+        final WoodcuttingLootType type = woodcuttingHandler.getLootTypes().random();
+        if (type == null) {
+            return new WoodcuttingLoot() {
+                @Override
+                public WoodcuttingLootType getType() {
+                    return null;
+                }
+
+                @Override
+                public void processRemovedLeaf(Player player, Location location) {
+                    UtilMessage.message(player, "Woodcutting", "<red>No loot type registered! Please report this to an admin!");
+                }
+            };
+        }
+
+        return type.generateLoot();
     }
 }
