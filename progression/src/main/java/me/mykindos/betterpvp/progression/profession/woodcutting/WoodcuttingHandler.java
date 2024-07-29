@@ -135,6 +135,7 @@ public class WoodcuttingHandler extends ProfessionHandler {
         classes.removeIf(clazz -> clazz.isAnnotationPresent(Deprecated.class));
 
         for (var clazz : classes) {
+            log.info("Class " + clazz.getName()).submit();
             WoodcuttingLootType type = progression.getInjector().getInstance(clazz);
             progression.getInjector().injectMembers(type);
 
