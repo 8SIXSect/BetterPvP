@@ -88,10 +88,6 @@ public class SeismicSlam extends Skill implements InteractSkill, CooldownSkill, 
         return baseDamage + ((level - 1) * damageIncreasePerLevel);
     }
 
-    public double getBonusDamagePerTenBlocks(int level) {
-        return bonusDamagePerTenBlocks;
-    }
-
     public double getRadius(int level) {
         return baseRadius + (radiusIncreasePerLevel * (level - 1));
     }
