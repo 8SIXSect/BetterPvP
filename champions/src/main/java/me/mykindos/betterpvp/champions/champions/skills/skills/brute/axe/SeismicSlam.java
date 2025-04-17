@@ -58,7 +58,6 @@ public class SeismicSlam extends Skill implements InteractSkill, CooldownSkill, 
     private double radiusIncreasePerLevel;
     private double baseDamage;
     private double damageIncreasePerLevel;
-    private double bonusDamagePerTenBlocks;
 
     @Inject
     public SeismicSlam(Champions champions, ChampionsManager championsManager, TaskScheduler taskScheduler) {
@@ -80,9 +79,6 @@ public class SeismicSlam extends Skill implements InteractSkill, CooldownSkill, 
                 "Leap up and slam into the ground, knocking up",
                 "players within " + getValueString(this::getRadius, level) + " blocks",
                 "and dealing " + getValueString(this::getSlamDamage, level) + " damage",
-                "",
-                "For every 10 blocks vertically travelled,",
-                "deal an additional " + getValueString(this::getBonusDamagePerTenBlocks, level) + " damage",
                 "",
                 "Cooldown: " + getValueString(this::getCooldown, level)
         };
@@ -172,9 +168,7 @@ public class SeismicSlam extends Skill implements InteractSkill, CooldownSkill, 
         double distanceFactor = 1 - (distance / maxDistance);
         distanceFactor = Math.max(0, Math.min(distanceFactor, 1));
 
-        double verticalDistanceBonus = (Math.abs(data.getMaxY() - target.getLocation().getY()) / 10) * bonusDamagePerTenBlocks;
-
-        return minDamage + (verticalDistanceBonus + (getSlamDamage(level) - minDamage)) * distanceFactor;
+        return minDamage + (getSlamDamage(level) - minDamage) * distanceFactor;
     }
 
     @Override
