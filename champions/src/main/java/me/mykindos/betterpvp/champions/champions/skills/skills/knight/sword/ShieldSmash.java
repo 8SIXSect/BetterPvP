@@ -1,4 +1,4 @@
-package me.mykindos.betterpvp.champions.champions.skills.skills.knight.axe;
+package me.mykindos.betterpvp.champions.champions.skills.skills.knight.sword;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -68,7 +68,7 @@ public class ShieldSmash extends Skill implements InteractSkill, CooldownSkill, 
     @Override
     public String[] getDescription(int level) {
         return new String[]{
-                "Right click with an Axe to activate",
+                "Right click with a Sword to activate",
                 "",
                 "Smash your shield into an enemy,",
                 "dealing " + getValueString(this::getKnockbackMultiplier, level, 100, "%", 0) + " knockback and knocking",
@@ -97,7 +97,7 @@ public class ShieldSmash extends Skill implements InteractSkill, CooldownSkill, 
 
     @Override
     public SkillType getType() {
-        return SkillType.AXE;
+        return SkillType.SWORD;
     }
 
     @EventHandler
