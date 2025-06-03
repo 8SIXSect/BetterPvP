@@ -13,6 +13,7 @@ import me.mykindos.betterpvp.champions.champions.skills.types.InteractSkill;
 import me.mykindos.betterpvp.champions.champions.skills.types.OffensiveSkill;
 import me.mykindos.betterpvp.core.components.champions.Role;
 import me.mykindos.betterpvp.core.components.champions.SkillType;
+import me.mykindos.betterpvp.core.effects.EffectTypes;
 import me.mykindos.betterpvp.core.framework.updater.UpdateEvent;
 import me.mykindos.betterpvp.core.listener.BPvPListener;
 import org.bukkit.Location;
@@ -36,37 +37,40 @@ import java.util.Map;
 
 @Singleton
 @BPvPListener
-public class MagneticAxe extends Skill implements InteractSkill, Listener, CooldownSkill, OffensiveSkill, DamageSkill {
+public class MagneticSpear extends Skill implements InteractSkill, Listener, CooldownSkill, OffensiveSkill, DamageSkill {
 
     private final Map<Player, List<AxeProjectile>> data = new HashMap<>();
 
     private double baseDamage;
     private double damageIncreasePerLevel;
-    private double duration;
+    private double projectileDuration;
+    private double shockDuration;
+    private int concussedStrength;
     private double hitboxSize;
     private double speed;
 
     @Inject
-    public MagneticAxe(Champions champions, ChampionsManager championsManager) {
+    public MagneticSpear(Champions champions, ChampionsManager championsManager) {
         super(champions, championsManager);
     }
 
     @Override
     public String getName() {
-        return "Magnetic Axe";
+        return "Magnetic Spear";
     }
 
     @Override
     public String[] getDescription(int level) {
         return new String[]{
-                "Right click with an Axe to activate",
+                "Drop your Sword / Axe to activate",
                 "",
-                "Throw your axe, dealing " + getValueString(this::getDamage, level) + " damage",
+                "Charge and throw a spear that <effect>Shocks</effect>,",
+                "<effect>Concusses</effect> and deals " + getValueString(this::getDamage, level) + " damage",
+                "to enemies.",
                 "",
-                "After colliding with anything, it",
-                "will be magnetized back to you",
+                "Cooldown: " + getValueString(this::getCooldown, level),
                 "",
-                "Cooldown: " + getValueString(this::getCooldown, level)
+                EffectTypes.CONCUSSED.getDescription(0)
         };
     }
 
@@ -78,8 +82,8 @@ public class MagneticAxe extends Skill implements InteractSkill, Listener, Coold
         return baseDamage + ((level - 1) * damageIncreasePerLevel);
     }
 
-    private double getDuration(int level) {
-        return duration;
+    private double getProjectileDuration(int level) {
+        return projectileDuration;
     }
 
     @Override
@@ -118,7 +122,7 @@ public class MagneticAxe extends Skill implements InteractSkill, Listener, Coold
                 player,
                 hitboxSize,
                 rightHandPosition,
-                (long) (getDuration(level) * 1000L),
+                (long) (getProjectileDuration(level) * 1000L),
                 axeItem,
                 getDamage(level),
                 getSpeed(),
@@ -233,9 +237,11 @@ public class MagneticAxe extends Skill implements InteractSkill, Listener, Coold
 
     @Override
     public void loadSkillConfig() {
-        baseDamage = getConfig("baseDamage", 5.0, Double.class);
-        damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 0.5, Double.class);
-        duration = getConfig("duration", 10.0, Double.class);
+        baseDamage = getConfig("baseDamage", 4.0, Double.class);
+        damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 1.5, Double.class);
+        shockDuration = getConfig("shockDuration", 2.5, Double.class);
+        concussedStrength = getConfig("concussedStrength", 1, Integer.class);
+        projectileDuration = getConfig("projectileDuration", 10.0, Double.class);
         hitboxSize = getConfig("hitboxSize", 0.4, Double.class);
         speed = getConfig("speed", 30.0, Double.class);
     }

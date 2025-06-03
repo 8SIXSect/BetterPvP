@@ -205,14 +205,16 @@ skills:
       lifespan: 2.0
       canUseWhileSlowed: false
       cooldownDecreasePerLevel: 1.0
-    magneticaxe:
+    magneticspear:
       enabled: true
-      maxlevel: 5
-      cooldown: 5.0
-      cooldownDecreasePerLevel: 0.5
-      damageIncreasePerLevel: 0.5
-      damage: 5.0
-      duration: 10.0
+      maxlevel: 3
+      cooldown: 17.0
+      cooldownDecreasePerLevel: 1.0
+      damage: 4.0
+      damageIncreasePerLevel: 1.5
+      effectsDuration: 2.5
+      concussedStrength: 1
+      projectileDuration: 10.0
       hitboxSize: 0.4
       speed: 30.0
     bullscharge:
