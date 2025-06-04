@@ -184,7 +184,7 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
         Player player = event.getPlayer();
         if (!playersInWindUp.contains(player)) return;
         if (event.getSkill().getType() == SkillType.SWORD || event.getSkill().getType() == SkillType.AXE) {
-            UtilMessage.simpleMessage(player, "You cannot use another skill while winding up your spear!");
+            UtilMessage.simpleMessage(player, "Knight", "You cannot use another skill while winding up your spear!");
             event.setCancelled(true);
         }
     }
