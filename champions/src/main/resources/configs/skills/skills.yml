@@ -214,8 +214,6 @@ skills:
       damageIncreasePerLevel: 1.5
       effectsDuration: 2.5
       concussedStrength: 1
-      projectileDuration: 10.0
-      hitboxSize: 0.4
       speed: 30.0
     bullscharge:
       enabled: true

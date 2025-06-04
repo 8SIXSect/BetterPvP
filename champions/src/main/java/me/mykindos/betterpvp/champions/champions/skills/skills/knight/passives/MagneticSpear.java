@@ -22,6 +22,7 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
@@ -41,11 +42,8 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
 
     private double baseDamage;
     private double damageIncreasePerLevel;
-    private double projectileDuration;
-    private double shockDuration;
+    private double effectsDuration;
     private int concussedStrength;
-    private double hitboxSize;
-    private double speed;
 
     @Inject
     public MagneticSpear(Champions champions, ChampionsManager championsManager) {
@@ -72,16 +70,12 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
         };
     }
 
-    public double getSpeed() {
-        return speed;
-    }
-
     private double getDamage(int level) {
         return baseDamage + ((level - 1) * damageIncreasePerLevel);
     }
 
-    private double getProjectileDuration(int level) {
-        return projectileDuration;
+    private double getEffectsDuration(int level) {
+        return effectsDuration;
     }
 
     @Override
@@ -151,21 +145,28 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
                     Color color = (armIndex % 2 == 0) ? Color.BLACK : Color.YELLOW;
                     Particle.DustOptions dustOptions = new Particle.DustOptions(color, 1.5F);
 
-                    center.getWorld().spawnParticle(
-                            Particle.DUST,
-                            particlePosition,
-                            0,
-                            0, 0, 0,
-                            0,
-                            dustOptions
-                    );
+                    Particle.DUST.builder()
+                            .location(particlePosition)
+                            .offset(0, 0, 0)
+                            .receivers(60)
+                            .color(color)
+                            .count(0)
+                            .extra(0)
+                            .data(dustOptions)
+                            .spawn();
                 }
             }
         }
     }
 
+    /**
+     * This is where most of the logic happens for the ability.
+     * <p>
+     * Negative effects are applied to the enemy hit by the spear, damage is dealt, etc.
+     */
     @EventHandler
     public void doDamageAndRemoveTridentOnSpearHitEnemy(CustomDamageEvent event) {
+        if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
         if (!(event.getProjectile() instanceof Trident trident)) return;
         if (!spears.containsKey(trident)) return;
@@ -179,9 +180,17 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
         // Delete the trident from the code
         spears.remove(trident);
 
-        event.setDamage(getDamage(getLevel(player)));
+        // Deal damage to the enemy
+        int level = getLevel(player);
+        event.setDamage(getDamage(level));
         event.addReason(getName());
         event.setDamageDelay(0);
+
+        // Apply negative effects to the enemy
+        LivingEntity enemy = event.getDamagee();
+        long duration = (long) (getEffectsDuration(level) * 1000L);
+        championsManager.getEffects().addEffect(enemy, player, EffectTypes.CONCUSSED, concussedStrength, duration);
+        championsManager.getEffects().addEffect(enemy, player, EffectTypes.SHOCK, duration);
     }
 
     /**
@@ -216,10 +225,7 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
     public void loadSkillConfig() {
         baseDamage = getConfig("baseDamage", 4.0, Double.class);
         damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 1.5, Double.class);
-        shockDuration = getConfig("shockDuration", 2.5, Double.class);
+        effectsDuration = getConfig("effectsDuration", 2.5, Double.class);
         concussedStrength = getConfig("concussedStrength", 1, Integer.class);
-        projectileDuration = getConfig("projectileDuration", 10.0, Double.class);
-        hitboxSize = getConfig("hitboxSize", 0.4, Double.class);
-        speed = getConfig("speed", 30.0, Double.class);
     }
 }
