@@ -6,7 +6,6 @@ import com.google.inject.Singleton;
 import me.mykindos.betterpvp.champions.Champions;
 import me.mykindos.betterpvp.champions.champions.ChampionsManager;
 import me.mykindos.betterpvp.champions.champions.skills.Skill;
-import me.mykindos.betterpvp.champions.champions.skills.skills.knight.data.AxeProjectile;
 import me.mykindos.betterpvp.champions.champions.skills.types.CooldownSkill;
 import me.mykindos.betterpvp.champions.champions.skills.types.CooldownToggleSkill;
 import me.mykindos.betterpvp.champions.champions.skills.types.DamageSkill;
@@ -14,9 +13,12 @@ import me.mykindos.betterpvp.champions.champions.skills.types.OffensiveSkill;
 import me.mykindos.betterpvp.core.combat.events.CustomDamageEvent;
 import me.mykindos.betterpvp.core.components.champions.Role;
 import me.mykindos.betterpvp.core.components.champions.SkillType;
+import me.mykindos.betterpvp.core.components.champions.events.PlayerUseSkillEvent;
 import me.mykindos.betterpvp.core.effects.EffectTypes;
 import me.mykindos.betterpvp.core.framework.updater.UpdateEvent;
 import me.mykindos.betterpvp.core.listener.BPvPListener;
+import me.mykindos.betterpvp.core.utilities.UtilMessage;
+import me.mykindos.betterpvp.core.utilities.UtilServer;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -30,20 +32,27 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
+import java.util.HashSet;
+
 
 @Singleton
 @BPvPListener
 public class MagneticSpear extends Skill implements CooldownToggleSkill, Listener, CooldownSkill, OffensiveSkill, DamageSkill {
 
-    private final Map<Player, List<AxeProjectile>> data = new HashMap<>();
+    private final HashSet<Player> playersInWindUp = new HashSet<>();
     private final WeakHashMap<Trident, Player> spears = new WeakHashMap<>();
 
     private double baseDamage;
     private double damageIncreasePerLevel;
     private double effectsDuration;
     private int concussedStrength;
+    private double windUpDuration;
 
     @Inject
     public MagneticSpear(Champions champions, ChampionsManager championsManager) {
@@ -95,15 +104,89 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
 
     @Override
     public void toggle(Player player, int level) {
+
         // do wind up
+        int startingSlownessLevel = 5;
+        double windUpDurationInTicks = windUpDuration * 20L;
+        playersInWindUp.add(player);
 
-        // spawn projectile
-        Trident playerSpear = player.launchProjectile(Trident.class);
-        playerSpear.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-        playerSpear.setVelocity(player.getLocation().getDirection().multiply(2));
-        playerSpear.setShooter(player);
+        new BukkitRunnable() {
+            int tickCount = 0;
 
-        spears.put(playerSpear, player);
+            @Override
+            public void run() {
+                if (tickCount >= windUpDurationInTicks || !player.isOnline()) {
+                    championsManager.getEffects().removeEffect(player, EffectTypes.SLOWNESS);
+                    playersInWindUp.remove(player);
+
+                    cancel();
+                    return;
+                }
+
+                // Calculate remaining strength: 5 → 0  && apply slowness effect
+                double charge = tickCount / windUpDurationInTicks;
+                int slownessLevel = (int) Math.ceil(startingSlownessLevel * (1 - charge));
+
+                championsManager.getEffects().addEffect(player, player, EffectTypes.SLOWNESS, slownessLevel, -1);
+
+                // Pitch increases as the wind up progresses
+                float pitch = 1f + ((float) charge);
+                player.playSound(player.getEyeLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, pitch);
+
+                // Small swirl of black and yellow dust to indicate wind up
+                Location loc = player.getLocation().add(0, 1.0, 0);
+                Color[] colors = {Color.BLACK, Color.YELLOW};
+
+                for (int i = 0; i < 2; i++) {
+                    double angle = Math.toRadians(((double) System.currentTimeMillis() / 10 + i * 180) % 360);
+                    double radius = 0.4;
+                    double x = Math.cos(angle) * radius;
+                    double z = Math.sin(angle) * radius;
+
+                    Particle.DustOptions dust = new Particle.DustOptions(colors[i], 1.0F);
+                    Location particleLoc = loc.clone().add(x, 0.2, z);
+                    Particle.DUST.builder()
+                            .location(particleLoc)
+                            .count(0)
+                            .offset(0, 0, 0)
+                            .extra(0)
+                            .data(dust)
+                            .receivers(60)
+                            .spawn();
+                }
+
+                tickCount++;
+            }
+        }.runTaskTimer(champions, 0L, 1L);
+
+
+        // Do ability - have it run the tick after the wind up is done
+        UtilServer.runTaskLater(champions, () -> {
+
+            // do projectile sound
+            player.getWorld().playSound(player.getLocation(), Sound.ITEM_TRIDENT_THROW, 1.0f, 1.1f);
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f);
+
+            // spawn projectile
+            Trident playerSpear = player.launchProjectile(Trident.class);
+            playerSpear.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+            playerSpear.setVelocity(player.getLocation().getDirection().multiply(2));
+            playerSpear.setShooter(player);
+
+            spears.put(playerSpear, player);
+        }, (long) windUpDurationInTicks + 1L);
+    }
+
+    @EventHandler
+    public void onPlayerUseSkillDuringWindUp(PlayerUseSkillEvent event) {
+        if (event.isCancelled()) return;
+
+        Player player = event.getPlayer();
+        if (!playersInWindUp.contains(player)) return;
+        if (event.getSkill().getType() == SkillType.SWORD || event.getSkill().getType() == SkillType.AXE) {
+            UtilMessage.simpleMessage(player, "You cannot use another skill while winding up your spear!");
+            event.setCancelled(true);
+        }
     }
 
     /**
@@ -171,6 +254,7 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
         if (!(event.getProjectile() instanceof Trident trident)) return;
         if (!spears.containsKey(trident)) return;
 
+        // Sound on successful hit
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.5f, 0.7f);
         event.getDamager().getWorld().playSound(event.getDamagee().getLocation(), Sound.ENTITY_ARROW_HIT, 0.5f, 1.0f);
 
@@ -225,7 +309,8 @@ public class MagneticSpear extends Skill implements CooldownToggleSkill, Listene
     public void loadSkillConfig() {
         baseDamage = getConfig("baseDamage", 4.0, Double.class);
         damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 1.5, Double.class);
-        effectsDuration = getConfig("effectsDuration", 2.5, Double.class);
+        effectsDuration = getConfig("effectsDuration", 4.0, Double.class);
         concussedStrength = getConfig("concussedStrength", 1, Integer.class);
+        windUpDuration = getConfig("windUpDuration", 1.2, Double.class);
     }
 }

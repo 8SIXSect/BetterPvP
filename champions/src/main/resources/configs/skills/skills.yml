@@ -212,9 +212,9 @@ skills:
       cooldownDecreasePerLevel: 1.0
       damage: 4.0
       damageIncreasePerLevel: 1.5
-      effectsDuration: 2.5
+      effectsDuration: 4.0
       concussedStrength: 1
-      speed: 30.0
+      windUpDuration: 1.2
     bullscharge:
       enabled: true
       cooldown: 14.0
