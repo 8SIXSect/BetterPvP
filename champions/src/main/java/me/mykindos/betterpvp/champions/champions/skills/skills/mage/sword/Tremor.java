@@ -104,7 +104,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
             final Map.Entry<Player, TremorData> entry = iterator.next();
             final @NotNull Player player = entry.getKey();
             final @NotNull TremorData tremor = entry.getValue();
-            if (!player.isValid() || player.isDead()) {
+            if (!player.isOnline() || !player.isValid() || player.isDead()) {
                 iterator.remove();
                 continue;
             }
