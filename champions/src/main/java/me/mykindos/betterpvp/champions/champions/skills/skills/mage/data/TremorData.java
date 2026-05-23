@@ -1,24 +1,16 @@
 package me.mykindos.betterpvp.champions.champions.skills.skills.mage.data;
 
-import lombok.Getter;
+import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter
+@Data
 public class TremorData {
 
-    private final Location origin;
+    private Location origin;
     private double currentRadius;
-    private final Set<LivingEntity> hitEntities = new HashSet<>();
-
-    public TremorData(Location origin) {
-        this.origin = origin.clone();
-    }
-
-    public void increaseRadius(double amount) {
-        currentRadius += amount;
-    }
+    private Set<LivingEntity> hitEntities = new HashSet<>();
 }

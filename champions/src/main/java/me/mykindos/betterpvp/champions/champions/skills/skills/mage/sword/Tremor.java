@@ -26,6 +26,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -89,7 +90,9 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
 
     @Override
     public boolean activate(Player player, int level) {
-        tremors.put(player, new TremorData(player.getLocation().clone()));
+        TremorData tremorData = new TremorData();
+        tremorData.setOrigin(player.getLocation().clone());
+        tremors.put(player, tremorData);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 0.6f);
         return true;
     }
@@ -99,9 +102,9 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
         final Iterator<Map.Entry<Player, TremorData>> iterator = tremors.entrySet().iterator();
         while (iterator.hasNext()) {
             final Map.Entry<Player, TremorData> entry = iterator.next();
-            final Player player = entry.getKey();
-            final TremorData tremor = entry.getValue();
-            if (player == null || !player.isValid() || tremor == null) {
+            final @NotNull Player player = entry.getKey();
+            final @NotNull TremorData tremor = entry.getValue();
+            if (!player.isValid() || player.isDead()) {
                 iterator.remove();
                 continue;
             }
@@ -113,7 +116,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
             }
 
             final double previousRadius = tremor.getCurrentRadius();
-            tremor.increaseRadius(radiusIncreasePerTick);
+            tremor.setCurrentRadius(tremor.getCurrentRadius() + radiusIncreasePerTick);
             final double currentRadius = tremor.getCurrentRadius();
             final Location origin = tremor.getOrigin();
             drawShockwave(origin, currentRadius);
