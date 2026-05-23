@@ -43,6 +43,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
     private double damageIncreasePerLevel;
     private double maxRadius;
     private double radiusIncreasePerTick;
+    private double weightedDuration;
 
     @Inject
     public Tremor(Champions champions, ChampionsManager championsManager) {
@@ -142,7 +143,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
 
                 if (championsManager.getEffects().hasEffect(enemy, EffectTypes.SLOWNESS)) {
                     championsManager.getEffects().addEffect(enemy, player, EffectTypes.WEIGHTED, getName(), 1,
-                            championsManager.getEffects().getDuration(enemy, EffectTypes.SLOWNESS), true);
+                            weightedDuration, true);
                 }
 
                 enemy.getWorld().playSound(enemy.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.8f);
@@ -180,5 +181,6 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
         damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 1.0, Double.class);
         maxRadius = getConfig("radius", 5.0, Double.class);
         radiusIncreasePerTick = getConfig("radiusIncreasePerTick", 0.5, Double.class);
+        weightedDuration = getConfig("weightedDuration", 5.0, Double.class);
     }
 }
