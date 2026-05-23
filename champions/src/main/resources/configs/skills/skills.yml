@@ -499,7 +499,7 @@ skills:
       damage: 3.0
       damageIncreasePerLevel: 1.0
       radius: 5.0
-      radiusIncreasePerTick: 1.0
+      radiusIncreasePerTick: 0.5
     glacialblade:
       enabled: true
       maxlevel: 3

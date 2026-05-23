@@ -118,7 +118,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
             drawShockwave(origin, currentRadius);
 
             for (LivingEntity enemy : UtilEntity.getNearbyEnemies(player, origin, currentRadius)) {
-                if (tremor.getHitEntities().contains(enemy) || !player.hasLineOfSight(enemy)) {
+                if (tremor.getHitEntities().contains(enemy)) {
                     continue;
                 }
 
@@ -162,6 +162,6 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
         damage = getConfig("damage", 3.0, Double.class);
         damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 1.0, Double.class);
         maxRadius = getConfig("radius", 5.0, Double.class);
-        radiusIncreasePerTick = getConfig("radiusIncreasePerTick", 1.0, Double.class);
+        radiusIncreasePerTick = getConfig("radiusIncreasePerTick", 0.5, Double.class);
     }
 }
