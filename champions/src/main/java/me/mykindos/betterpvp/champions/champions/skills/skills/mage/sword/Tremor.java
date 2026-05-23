@@ -16,6 +16,7 @@ import me.mykindos.betterpvp.champions.combat.damage.SkillDamageCause;
 import me.mykindos.betterpvp.core.combat.events.DamageEvent;
 import me.mykindos.betterpvp.core.components.champions.Role;
 import me.mykindos.betterpvp.core.components.champions.SkillType;
+import me.mykindos.betterpvp.core.effects.EffectTypes;
 import me.mykindos.betterpvp.core.framework.updater.UpdateEvent;
 import me.mykindos.betterpvp.core.listener.BPvPListener;
 import me.mykindos.betterpvp.core.utilities.UtilDamage;
@@ -138,6 +139,15 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
                         new SkillDamageCause(this),
                         getDamage(level),
                         getName()));
+
+                if (championsManager.getEffects().hasEffect(enemy, EffectTypes.SLOWNESS)) {
+                    long slownessDuration = championsManager.getEffects().getDuration(enemy, EffectTypes.SLOWNESS);
+                    if (slownessDuration > 0) {
+                        championsManager.getEffects().addEffect(enemy, player, EffectTypes.WEIGHTED, getName(), 1, slownessDuration, true);
+                    }
+                }
+
+                enemy.getWorld().playSound(enemy.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.8f);
             }
 
             if (currentRadius >= maxRadius) {
