@@ -112,6 +112,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
                 continue;
             }
 
+            final double previousRadius = tremor.getCurrentRadius();
             tremor.increaseRadius(radiusIncreasePerTick);
             final double currentRadius = tremor.getCurrentRadius();
             final Location origin = tremor.getOrigin();
@@ -119,6 +120,11 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
 
             for (LivingEntity enemy : UtilEntity.getNearbyEnemies(player, origin, currentRadius)) {
                 if (tremor.getHitEntities().contains(enemy)) {
+                    continue;
+                }
+
+                final double enemyDistance = enemy.getLocation().distance(origin);
+                if (enemyDistance <= previousRadius) {
                     continue;
                 }
 
