@@ -141,10 +141,8 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
                         getName()));
 
                 if (championsManager.getEffects().hasEffect(enemy, EffectTypes.SLOWNESS)) {
-                    long slownessDuration = championsManager.getEffects().getDuration(enemy, EffectTypes.SLOWNESS);
-                    if (slownessDuration > 0) {
-                        championsManager.getEffects().addEffect(enemy, player, EffectTypes.WEIGHTED, getName(), 1, slownessDuration, true);
-                    }
+                    championsManager.getEffects().addEffect(enemy, player, EffectTypes.WEIGHTED, getName(), 1,
+                            championsManager.getEffects().getDuration(enemy, EffectTypes.SLOWNESS), true);
                 }
 
                 enemy.getWorld().playSound(enemy.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.8f);
