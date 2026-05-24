@@ -16,6 +16,6 @@ public class WeightedEffect extends EffectType {
 
     @Override
     public String getDescription(int level) {
-        return "<white>" + getName() + "<reset> prevents melee attacks from knocking you back";
+        return "<white>" + getName() + "<reset> prevents melee attacks from knocking you back.";
     }
 }
