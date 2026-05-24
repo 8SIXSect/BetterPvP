@@ -22,6 +22,7 @@ import me.mykindos.betterpvp.core.effects.types.negative.SlownessEffect;
 import me.mykindos.betterpvp.core.effects.types.negative.StunEffect;
 import me.mykindos.betterpvp.core.effects.types.negative.VulnerabilityEffect;
 import me.mykindos.betterpvp.core.effects.types.negative.WeaknessEffect;
+import me.mykindos.betterpvp.core.effects.types.negative.WeightedEffect;
 import me.mykindos.betterpvp.core.effects.types.negative.WitherEffect;
 import me.mykindos.betterpvp.core.effects.types.positive.AttackSpeedEffect;
 import me.mykindos.betterpvp.core.effects.types.positive.CooldownReductionEffect;
@@ -80,6 +81,7 @@ public class EffectTypes {
     public static final EffectType DEATHS_CURSE = createEffectType(new DeathsCurseEffect());
     public static final EffectType WEAKNESS = createEffectType(new WeaknessEffect());
     public static final EffectType FRENZY = createEffectType(new FrenzyEffect());
+    public static final EffectType WEIGHTED = createEffectType(new WeightedEffect());
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Positive Effect Types">

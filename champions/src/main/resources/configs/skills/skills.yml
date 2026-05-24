@@ -491,6 +491,16 @@ skills:
       pushbackVerticalIncreasePerLevel: 0.0
       pushbackHorizontalStrength: 0.2
       pushbackHorizontalIncreasePerLevel: 0.0
+    tremor:
+      enabled: true
+      maxlevel: 3
+      cooldown: 13.0
+      cooldownDecreasePerLevel: 2.0
+      damage: 3.0
+      damageIncreasePerLevel: 1.0
+      radius: 5.0
+      radiusIncreasePerTick: 0.5
+      weightedDuration: 5.0
     glacialblade:
       enabled: true
       maxlevel: 3
