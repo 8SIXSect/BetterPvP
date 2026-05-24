@@ -41,7 +41,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
 
     private double damage;
     private double damageIncreasePerLevel;
-    private double maxRadius;
+    private double radius;
     private double radiusIncreasePerTick;
     private double weightedDuration;
 
@@ -60,19 +60,17 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
         return new String[]{
                 "Right click with a Sword to activate",
                 "",
-                "Send out a shockwave in a " + getValueString(this::getRadius, level) + " block radius,",
-                "dealing " + getValueString(this::getDamage, level) + " damage to enemies hit",
+                "Send out a shockwave dealing " + getValueString(this::getDamage, level) + " damage",
+                "If the hit enemy is already **Slowed**, they will receive the **Weighted** effect.",
                 "",
-                "Cooldown: " + getValueString(this::getCooldown, level)
+                "Cooldown: " + getValueString(this::getCooldown, level),
+                "",
+                EffectTypes.WEIGHTED.getDescription(0)
         };
     }
 
     public double getDamage(int level) {
         return damage + ((level - 1) * damageIncreasePerLevel);
-    }
-
-    public double getRadius(int level) {
-        return maxRadius;
     }
 
     @Override
@@ -149,7 +147,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
                 enemy.getWorld().playSound(enemy.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.8f);
             }
 
-            if (currentRadius >= maxRadius) {
+            if (currentRadius >= radius) {
                 iterator.remove();
             }
         }
@@ -179,7 +177,7 @@ public class Tremor extends Skill implements InteractSkill, CooldownSkill, Offen
     public void loadSkillConfig() {
         damage = getConfig("damage", 3.0, Double.class);
         damageIncreasePerLevel = getConfig("damageIncreasePerLevel", 1.0, Double.class);
-        maxRadius = getConfig("radius", 5.0, Double.class);
+        radius = getConfig("radius", 5.0, Double.class);
         radiusIncreasePerTick = getConfig("radiusIncreasePerTick", 0.5, Double.class);
         weightedDuration = getConfig("weightedDuration", 5.0, Double.class);
     }

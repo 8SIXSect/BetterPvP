@@ -13,4 +13,9 @@ public class WeightedEffect extends EffectType {
     public boolean isNegative() {
         return true;
     }
+
+    @Override
+    public String getDescription(int level) {
+        return "<white>" + getName() + "<reset> prevents melee attacks from knocking you back";
+    }
 }
